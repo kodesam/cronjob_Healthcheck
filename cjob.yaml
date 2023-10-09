@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: caas-cronjob-hc
+  namespace: open-caas-ops
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: caas-ops-service-account
+          containers:
+          - name: hcpod
+            image: quay.io/openshift/origin-cli
+            command:
+            - /bin/sh
+            args:
+            - pwd
+            # - get
+            # - node
+            volumeMounts:
+            - name: caas-vol
+              mountPath: /check_script.sh
+          volumes:
+          - name: caas-vol
+            persistentVolumeClaim:
+                 claimName: caas-pvc
+          restartPolicy: OnFailure

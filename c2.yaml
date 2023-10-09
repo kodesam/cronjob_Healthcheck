@@ -1,0 +1,91 @@
+apiVersion: v1
+items:
+- apiVersion: batch/v1
+  kind: CronJob
+  metadata:
+    annotations:
+      imageregistry.operator.openshift.io/checksum: sha256:e50efa079c5153fd265d7f9e5a8d9a834af1a13dd65a52e5215ffbbb2b551bd1
+    creationTimestamp: "2023-07-02T19:30:12Z"
+    generation: 2
+    name: image-pruner
+    namespace: openshift-image-registry
+    resourceVersion: "154401"
+    uid: 8ccb8fd4-4d09-4b97-a1a2-ee25a67f78f4
+  spec:
+    concurrencyPolicy: Forbid
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+      metadata:
+        creationTimestamp: null
+        labels:
+          created-by: image-pruner
+      spec:
+        backoffLimit: 0
+        template:
+          metadata:
+            creationTimestamp: null
+          spec:
+            affinity: {}
+            containers:
+            - args:
+              - -c
+              - |
+                set -eu
+                "$@" && exit
+                for i in 1 2 3 4 5; do
+                  echo "attempt #$i has failed (exit code $?), going to make another attempt..." >&2
+                  sleep $(($i * 30))
+                  "$@" && break  # this is the last command of the script, so its last failure will be exit code of the script
+                done
+              - arg0
+              - oc
+              - adm
+              - prune
+              - images
+              - --confirm=true
+              - --certificate-authority=/var/run/configmaps/serviceca/service-ca.crt
+              - --keep-tag-revisions=3
+              - --keep-younger-than=60m
+              - --ignore-invalid-refs=true
+              - --loglevel=1
+              - --prune-registry=true
+              - --registry-url=https://image-registry.openshift-image-registry.svc:5000
+              command:
+              - /bin/sh
+              image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:25e47c484bc5e43197bb6739480817d5e656196958ba75897503a05363710ccb
+              imagePullPolicy: IfNotPresent
+              name: image-pruner
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: FallbackToLogsOnError
+              volumeMounts:
+              - mountPath: /var/run/configmaps/serviceca
+                name: serviceca
+                readOnly: true
+            dnsPolicy: ClusterFirst
+            priorityClassName: system-cluster-critical
+            restartPolicy: Never
+            schedulerName: default-scheduler
+            securityContext: {}
+            serviceAccount: pruner
+            serviceAccountName: pruner
+            terminationGracePeriodSeconds: 30
+            volumes:
+            - configMap:
+                defaultMode: 420
+                name: serviceca
+              name: serviceca
+    schedule: 0 0 * * *
+    startingDeadlineSeconds: 3600
+    successfulJobsHistoryLimit: 3
+    suspend: false
+  status:
+    lastScheduleTime: "2023-07-03T00:00:00Z"
+    lastSuccessfulTime: "2023-07-03T00:00:04Z"
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

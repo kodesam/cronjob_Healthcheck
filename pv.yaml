@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+    name: caas-vol
+spec:
+   capacity:
+     storage: 1Gi
+   accessModes:
+   - ReadWriteOnce
+   persistantVolumeReclaimPolicy: Retain
+   hostPath:
+         path: /home/student/caashc/cronjobHealthcheck/hcjob    

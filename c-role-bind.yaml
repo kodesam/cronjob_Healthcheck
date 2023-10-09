@@ -1,0 +1,12 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: caas-ops-service-cluster
+subjects:
+  - kind: ServiceAccount
+    name: caas-ops-service-account
+    namespace: open-caas-ops
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: caas-ops-service-cluster

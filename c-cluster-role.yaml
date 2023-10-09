@@ -1,0 +1,21 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: caas-ops-service-cluster
+rules:
+  - verbs:
+      - get
+      - list
+      - watch
+    apiGroups:
+      - ""
+    resources:
+      - pods
+      - nodes
+  - verbs:
+      - get
+      - list
+    apiGroups:
+      - "config.openshift.io/v1"
+    resources:
+      - clusteroperators
