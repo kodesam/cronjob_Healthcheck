@@ -1,0 +1,26 @@
+apiVersion: batch/v1beta1
+  kind: CronJob
+  metadata:
+    name: run-oc-cronjob
+  spec:
+    schedule: "*/5 * * * *" # run every five minutes
+    jobTemplate:
+      spec:
+        template:
+          spec:
+            serviceAccountName: cronjob-sa # use the service account
+            containers:
+            - name: run-oc
+              image: openshift4/osc-cli # use the image from the repository
+              env:
+              - name: OC_COMMANDS_FILE # specify the environment variable for the file name
+                value: /host/oc-commands.txt
+              volumeMounts:
+              - name: host-folder # mount the host folder as a volume
+                mountPath: /host
+            volumes:
+            - name: host-folder
+              hostPath:
+                path: /path/to/host/folder # specify the path of the host folder
+                type: DirectoryOrCreate # create if not exists
+            restartPolicy: OnFailure
